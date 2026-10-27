@@ -30,6 +30,17 @@ public class Conexion {
 
     Connection con;
 
+    public static Connection conectar() {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/redmeteoro?useSSL=false&allowPublicKeyRetrieval=true";
+            return DriverManager.getConnection(url, "root", "");
+        } catch (Exception e) {
+            System.out.println("Error de conexión: " + e.getMessage());
+            return null;
+        }
+    }
+
     //-------------------------------------------------------------------------------
     public int conectar(String servidor, String base, String usuario, String clave) {
         try {

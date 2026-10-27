@@ -1,4 +1,5 @@
 
+import java.sql.*;
 import javax.swing.JOptionPane;
 
 
@@ -10,11 +11,12 @@ public class FAdministrador extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         
-//        if (cnx.conectar("localhost", "redmeteoro", "root", "") == 1) {
-//        } else {
-//            JOptionPane.showMessageDialog(this, "Sin conexión. La ventana se cerrará...");
-//            System.exit(0);
-//        }
+        if (cnx.conectar("localhost", "redmeteoro", "root", "") == 1) {
+            cnx.entablar(Usuario.todos, TUsuarios);
+        } else {
+            JOptionPane.showMessageDialog(this, "Sin conexión. La ventana se cerrará...");
+            System.exit(0);
+        }
     }
 
     /**
@@ -34,6 +36,8 @@ public class FAdministrador extends javax.swing.JFrame {
         jToolBar1 = new javax.swing.JToolBar();
         BRegistrar = new javax.swing.JButton();
         BModificar = new javax.swing.JButton();
+        BCancelar = new javax.swing.JButton();
+        BBorrar = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         jTextField1 = new javax.swing.JTextField();
         BBuscar = new javax.swing.JButton();
@@ -111,6 +115,11 @@ public class FAdministrador extends javax.swing.JFrame {
         BRegistrar.setFocusable(false);
         BRegistrar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         BRegistrar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        BRegistrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BRegistrarActionPerformed(evt);
+            }
+        });
         jToolBar1.add(BRegistrar);
 
         BModificar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/Edit.png"))); // NOI18N
@@ -118,7 +127,36 @@ public class FAdministrador extends javax.swing.JFrame {
         BModificar.setFocusable(false);
         BModificar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         BModificar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        BModificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BModificarActionPerformed(evt);
+            }
+        });
         jToolBar1.add(BModificar);
+
+        BCancelar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/Eraser.png"))); // NOI18N
+        BCancelar.setText("CANCELAR");
+        BCancelar.setFocusable(false);
+        BCancelar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        BCancelar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        BCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BCancelarActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(BCancelar);
+
+        BBorrar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/Delete.png"))); // NOI18N
+        BBorrar.setText("BORRAR");
+        BBorrar.setFocusable(false);
+        BBorrar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        BBorrar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        BBorrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BBorrarActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(BBorrar);
         jToolBar1.add(jSeparator1);
 
         jTextField1.setMaximumSize(new java.awt.Dimension(250, 60));
@@ -236,6 +274,144 @@ public class FAdministrador extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void BRegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BRegistrarActionPerformed
+        // REGISTRAR
+        Usuario usuario = leerFormulario();
+        if (usuario == null) {
+            return;
+        }
+
+        try {
+            Connection con = Conexion.conectar();
+            if (con == null) {
+                return;
+            }
+            int resultado = usuario.insertar(con);
+            con.close();
+
+            if (resultado > 0) {
+                JOptionPane.showMessageDialog(this, "Usuario registrado correctamente");
+                limpiar();
+                cnx.entablar(Usuario.todos, TUsuarios);
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo registrar el usuario.\nRevisa que el nombre de usuario no esté repetido.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_BRegistrarActionPerformed
+
+    private void BModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BModificarActionPerformed
+        // MODIFICAR (busca al usuario por su nombre de usuario y cambia los demás datos)
+        Usuario usuario = leerFormulario();
+        if (usuario == null) {
+            return;
+        }
+
+        try {
+            Connection con = Conexion.conectar();
+            if (con == null) {
+                return;
+            }
+            int resultado = usuario.actualizar(con);
+            con.close();
+
+            if (resultado > 0) {
+                JOptionPane.showMessageDialog(this, "Usuario actualizado correctamente");
+                limpiar();
+                cnx.entablar(Usuario.todos, TUsuarios);
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo actualizar el usuario.\nRevisa que el nombre de usuario exista.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_BModificarActionPerformed
+
+    private void BCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BCancelarActionPerformed
+        // CANCELAR
+        dispose();
+    }//GEN-LAST:event_BCancelarActionPerformed
+
+    private void BBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BBorrarActionPerformed
+        // BORRAR (solo necesita el nombre de usuario)
+        String nombre_usuario = leerUsuario();
+        if (nombre_usuario == null) {
+            return;
+        }
+
+        int opcion = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas borrar al usuario " + nombre_usuario + "?", "Borrar", JOptionPane.YES_NO_OPTION);
+        if (opcion != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        Usuario usuario = new Usuario();
+        usuario.nombre_usuario = nombre_usuario;
+
+        try {
+            Connection con = Conexion.conectar();
+            if (con == null) {
+                return;
+            }
+            int resultado = usuario.borrar(con);
+            con.close();
+
+            if (resultado > 0) {
+                JOptionPane.showMessageDialog(this, "Usuario borrado correctamente");
+                limpiar();
+                cnx.entablar(Usuario.todos, TUsuarios);
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo borrar el usuario.\nRevisa que el nombre de usuario exista.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_BBorrarActionPerformed
+
+    // Lee el nombre de usuario y revisa que no esté vacío
+    private String leerUsuario() {
+        String nombre_usuario = TUsuario.getText().trim();
+        if (nombre_usuario.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Escribe el nombre de usuario");
+            return null;
+        }
+        return nombre_usuario;
+    }
+
+    // Lee todos los campos del formulario y regresa el objeto Usuario (null si hay un dato inválido)
+    private Usuario leerFormulario() {
+        String nombre_usuario = leerUsuario();
+        if (nombre_usuario == null) {
+            return null;
+        }
+
+        String nombre = TNombre.getText().trim();
+        if (nombre.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Escribe el nombre del usuario");
+            return null;
+        }
+
+        String nip = TClave.getText().trim();
+        if (nip.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Escribe la contraseña del usuario");
+            return null;
+        }
+
+        String role = CBRol.getSelectedItem().toString();
+        String estado = CBEstado.getSelectedItem().toString();
+
+        return new Usuario(nombre, nombre_usuario, nip, role, estado);
+    }
+
+    private void limpiar() {
+        TNombre.setText("");
+        TUsuario.setText("");
+        TClave.setText("");
+        CBRol.setSelectedIndex(0);
+        CBEstado.setSelectedIndex(0);
+        TNombre.requestFocus();
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -272,7 +448,9 @@ public class FAdministrador extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton BBorrar;
     private javax.swing.JButton BBuscar;
+    private javax.swing.JButton BCancelar;
     private javax.swing.JButton BMediciones;
     private javax.swing.JButton BModificar;
     private javax.swing.JButton BRegistrar;

@@ -6,25 +6,26 @@ import javax.swing.JOptionPane;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author drlias
  */
 public class FAcceso extends javax.swing.JFrame {
-
+    
     Conexion cnx = new Conexion();
+    
+    String rol = "SELECT rol FROM usuarios WHERE nom_usr = '%s' AND nip = '%s'";
+    
+    int intentos = 0;
     
     public FAcceso() {
         initComponents();
         setLocationRelativeTo(this);
         
-        if (cnx.conectar("localhost", "redmeteoro", "root", "") == 1) {
-        } else {
+        if (cnx.conectar("localhost", "redmeteoro", "root", "") == 0) {
             JOptionPane.showMessageDialog(this, "Sin conexión. La ventana se cerrará...");
             System.exit(0);
         }
-        
         
     }
 
@@ -57,6 +58,11 @@ public class FAcceso extends javax.swing.JFrame {
         jLabel2.setText("NIP");
 
         BAceptar.setText("ACEPTAR");
+        BAceptar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BAceptarActionPerformed(evt);
+            }
+        });
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -142,6 +148,38 @@ public class FAcceso extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void BAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BAceptarActionPerformed
+        String usr = TUsuario.getText();
+        String nip = TPassword.getText();
+        
+        String sql = String.format(rol, usr, nip);
+        String tipo = cnx.obtenerDato(sql);
+        
+        switch (tipo) {
+            case "administrador":
+                FAdministrador fa = new FAdministrador();
+                this.dispose();
+                cnx.desconectar();
+                fa.setVisible(true);
+                break;
+            case "Visitante":
+                FRegistrados fr = new FRegistrados();
+                cnx.desconectar();
+                fr.setVisible(true);
+                break;
+            case "":
+                JOptionPane.showMessageDialog(this, "Credenciales incorrectas. ");
+                intentos++;
+                if (intentos >= 3);
+                 {
+                    
+                    JOptionPane.showMessageDialog(this, "Número de intentos excedidos. ");
+                    System.exit(0);
+                }
+                break;
+        }
+    }//GEN-LAST:event_BAceptarActionPerformed
 
     /**
      * @param args the command line arguments
